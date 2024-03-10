@@ -13,12 +13,11 @@ export function App() {
       <ThemeProvider storageKey='pizzashop-theme' defaultTheme='dark'>
         <Helmet titleTemplate='%s | pizza.shop'/>
         <Toaster richColors/>
-        <QueryClientProvider client={queryClient}> 
+        <QueryClientProvider client={queryClient}>  {/* Client para requisições HTTP - Config do React Query em /lib/react-query */ }
           <RouterProvider router={router}/>
         </QueryClientProvider>
       </ThemeProvider>
     </HelmetProvider>
-
   )
 }   
 
