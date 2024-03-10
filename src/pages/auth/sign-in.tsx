@@ -1,6 +1,8 @@
+import { signIn } from "@/api/sign-in"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@radix-ui/react-label"
+import { useMutation } from "@tanstack/react-query"
 import { Helmet } from "react-helmet-async"
 import { useForm } from "react-hook-form"
 import { Link } from "react-router-dom"
@@ -16,10 +18,13 @@ type signInForm = z.infer<typeof signInForm>
 export function SignIn(){
     const { register, handleSubmit, formState: {isSubmitting}} = useForm<signInForm>()
 
+    const {mutateAsync: authenticate} = useMutation({ // hook do React Query que retorna diversas funcionalidades para comunicação Back-Front                                                
+        mutationFn: signIn
+    })
+
     async function handleSignIn(data: signInForm){
         try {
-            await new Promise(resolve => setTimeout(resolve, 2000))
-            console.log(data)
+            await authenticate({email: data.email})
             // throw new Error()
             toast.success('Enviamos um link de autenticação para seu e-mail.', {
                 action: {
