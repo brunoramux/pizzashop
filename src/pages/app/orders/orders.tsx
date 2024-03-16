@@ -21,14 +21,14 @@ export function Orders(){
         .parse(searchParams.get('page') ?? '1')
 
     const { data: result } = useQuery({
-        queryKey: ['orders', pageIndex, orderId, customerName, status], // a requisicao sera refeita quando o pageIndex for alterado
+        queryKey: ['orders', pageIndex, orderId, customerName, status], // a requisicao sera refeita quando os items forem alterados
         queryFn: () => getOrders({ pageIndex, customerName, orderId, status: status === 'all' ? null : status })
     })
 
     function handlePaginate(pageIndex: number){
-        setSearchParams(prev => {
-            prev.set('page', (pageIndex+1).toString()) // alterar searchParams
-            return prev
+        setSearchParams(state => {
+            state.set('page', (pageIndex+1).toString()) // alterar searchParams
+            return state
         })
     }
 

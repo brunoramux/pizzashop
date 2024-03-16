@@ -1,16 +1,36 @@
+import { getOrderDetails } from "@/api/get-order-details";
+import { OrderStatus } from "@/components/order-status";
 import { DialogContent, DialogDescription, DialogHeader } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { useQuery } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-export function OrderDetails(){
+interface OrderDetailsProps {
+    orderId: string
+    open: boolean
+}
+
+export function OrderDetails({ orderId, open }: OrderDetailsProps){
+    const { data: order } = useQuery({
+        queryKey: ['order', orderId],
+        queryFn: () => getOrderDetails({orderId}),
+        enabled: open // Executa a query somente quando o modal for aberto
+    })
+
+    if(!order){
+        return null
+    }
+
     return (
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>
-                    Pedido: jfaksjg994as
+                    Pedido: {order.id}
                 </DialogTitle>
                 <DialogDescription>
-                    Detalhes do pedido aqui
+                    <span>{order.customer.name}</span>
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-6">
@@ -19,38 +39,38 @@ export function OrderDetails(){
                         <TableRow>
                             <TableCell className="text-muted-foreground">Status</TableCell>
                             <TableCell className="flex justify-end">
-                                <div className="flex items-center gap-2">
-                                    <span className="h-2 w-2 rounded-full bg-slate-400"></span>
-                                    <span className="font-medium text-muted-foreground">Pendente</span>
-                                </div>
+                                <OrderStatus status={order?.status}/>
                             </TableCell>
                         </TableRow>
 
                         <TableRow>
                             <TableCell className="text-muted-foreground">Cliente</TableCell>
                             <TableCell className="flex justify-end">
-                                Bruno Ramos Lemos
+                                {order.customer.name}
                             </TableCell>
                         </TableRow>
 
                         <TableRow>
                             <TableCell className="text-muted-foreground">Telefone</TableCell>
                             <TableCell className="flex justify-end">
-                                (16) 994610753
+                                {order.customer.phone}
                             </TableCell>
                         </TableRow>
 
                         <TableRow>
                             <TableCell className="text-muted-foreground">E-mail</TableCell>
                             <TableCell className="flex justify-end">
-                                bruno.lemos@live.com
+                                {order.customer.email}
                             </TableCell>
                         </TableRow>
 
                         <TableRow>
                             <TableCell className="text-muted-foreground">Realizado</TableCell>
                             <TableCell className="flex justify-end">
-                                há 3 minutos
+                            {formatDistanceToNow(order.createdAt, {
+                                locale: ptBR,
+                                addSuffix: true
+                            })}
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -73,39 +93,40 @@ export function OrderDetails(){
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow>
-                            <TableCell className="text-right">
-                                Pizza Peperoni Familia
-                            </TableCell>
-                            <TableCell className="text-right">
-                                2
-                            </TableCell>
-                            <TableCell className="text-right">
-                                R$ 69,90
-                            </TableCell>
-                            <TableCell className="text-right">
-                                R$ 139,80
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell className="text-right">
-                                Pizza Mussarela Familia
-                            </TableCell>
-                            <TableCell className="text-right">
-                                2
-                            </TableCell>
-                            <TableCell className="text-right">
-                                R$ 45,00
-                            </TableCell>
-                            <TableCell className="text-right">
-                                R$ 90,00
-                            </TableCell>
-                        </TableRow>
+                        {order.orderItems.map(item => {
+                            return (
+                                <TableRow>
+                                    <TableCell className="text-right">
+                                        {item.product.name}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {item.quantity}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                    {(item.priceInCents / 100).toLocaleString('pt-BR', {
+                                        style: 'currency',
+                                        currency: 'BRL'
+                                    })}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                    {(item.priceInCents * item.quantity / 100).toLocaleString('pt-BR', {
+                                        style: 'currency',
+                                        currency: 'BRL'
+                                    })}
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
+                        
                     </TableBody>
                     <TableFooter>
                         <TableRow>
                             <TableCell colSpan={3}>Total do Pedido</TableCell>
-                            <TableCell className="text-right font-medium">R$ 229,80</TableCell>
+                            <TableCell className="text-right font-medium">
+                                {(order.totalInCents / 100).toLocaleString('pt-BR', {
+                                    style: 'currency',
+                                    currency: 'BRL'
+                                })}</TableCell>
                         </TableRow>
                     </TableFooter>
                 </Table>
